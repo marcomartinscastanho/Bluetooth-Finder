@@ -14,6 +14,7 @@ import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
+import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.ListView;
 import android.widget.TextView;
@@ -24,6 +25,9 @@ public class MainActivity extends AppCompatActivity {
     ListView listView;
     TextView statusTextView;
     Button searchButton;
+
+    ArrayList<String> devices;
+    ArrayAdapter arrayAdapter;
 
     BluetoothAdapter bluetoothAdapter;
 
@@ -45,6 +49,17 @@ public class MainActivity extends AppCompatActivity {
                 String address = device.getAddress();
                 String rssi = Integer.toString(intent.getShortExtra(BluetoothDevice.EXTRA_RSSI, Short.MIN_VALUE));
 
+                String devicePresentationName = rssi + " dBm - ";
+                if(name == null || name.equals("")){
+                    devicePresentationName += address;
+                }
+                else{
+                    devicePresentationName += name;
+                }
+
+                devices.add(devicePresentationName);
+                arrayAdapter.notifyDataSetChanged();
+
                 Log.i("DEVICE FOUND", "Name: "+ name + ", address: "+ address + ", RSSI:" + rssi);
 
             }
@@ -59,6 +74,10 @@ public class MainActivity extends AppCompatActivity {
         listView = findViewById(R.id.listView);
         statusTextView = findViewById(R.id.statusTextView);
         searchButton = findViewById(R.id.searchButton);
+
+        devices = new ArrayList<>();
+        arrayAdapter = new ArrayAdapter(this, android.R.layout.simple_list_item_1, devices);
+        listView.setAdapter(arrayAdapter);
 
         if (checkSelfPermission(Manifest.permission.BLUETOOTH_ADMIN) != PackageManager.PERMISSION_GRANTED
                 || checkSelfPermission(Manifest.permission.BLUETOOTH) != PackageManager.PERMISSION_GRANTED
@@ -86,7 +105,6 @@ public class MainActivity extends AppCompatActivity {
                     setBluetoothAdapter();
                 }
             }
-
         }
     }
 
@@ -104,6 +122,8 @@ public class MainActivity extends AppCompatActivity {
     public void searchClicked(View view){
         statusTextView.setText("Searching...");
         searchButton.setEnabled(false);
+        devices.clear();
+        arrayAdapter.notifyDataSetChanged();
         bluetoothAdapter.startDiscovery();
     }
 }
